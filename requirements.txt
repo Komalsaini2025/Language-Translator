@@ -2,3 +2,15 @@ streamlit
 google-generativeai
 pyttsx3
 gtts
+pytesseract
+PIL 
+pdfplumber
+docx2txt
+io
+requests
+threading
+random
+Translator
+Document
+FPDF
+os
