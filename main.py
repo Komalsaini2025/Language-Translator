@@ -111,28 +111,25 @@ def ensure_font():
 
 # 🔹 Generate Downloadable File
 # 🔹 Generate Downloadable File
-
-def generate_downloadable_file(text, filename):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.set_font("Arial", size=12)
-
-    # Add translated text
-    pdf.multi_cell(0, 10, text)
-
-    # Create a BytesIO buffer
+def generate_downloadable_file(content, original_filename):
+    file_extension = original_filename.split(".")[-1]
     buffer = io.BytesIO()
-    
-    # Output the PDF to buffer
-    pdf.output(buffer, "F")
-    buffer.seek(0)  # Move cursor to the start of the buffer
 
-    # Extract the file extension (e.g., 'filename.pdf')
-    pdf_filename = filename.split('.')[0] + ".pdf"
+    if file_extension == "txt":
+        buffer.write(content.encode("utf-8"))
+    elif file_extension == "docx":
+        doc = Document()
+        doc.add_paragraph(content)
+        doc.save(buffer)
+    elif file_extension == "pdf":
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)  # Using built-in font instead of external one
+        pdf.multi_cell(0, 10, content)
+        pdf.output(buffer, "F")  # Ensure buffer contains valid PDF data
 
-    return buffer, pdf_filename, "application/pdf"
-
+    buffer.seek(0)
+    return buffer, f"translated.{file_extension}", f"application/{file_extension}"
 
 
 
