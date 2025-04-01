@@ -3,14 +3,8 @@ google-generativeai
 pyttsx3
 gtts
 pytesseract
-PIL 
 pdfplumber
 docx2txt
-io
+fpdf
 requests
-threading
-random
-Translator
-Document
-FPDF
-os
+googletrans==4.0.0-rc1
