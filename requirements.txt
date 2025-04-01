@@ -7,4 +7,5 @@ pdfplumber
 docx2txt
 fpdf
 requests
+python-docx
 googletrans==4.0.0-rc1
