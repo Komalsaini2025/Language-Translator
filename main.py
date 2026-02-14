@@ -10,6 +10,7 @@ import io
 import requests
 import threading
 import random
+import asyncio
 from googletrans import Translator
 from docx import Document
 from fpdf import FPDF
@@ -27,13 +28,20 @@ def get_random_api_key():
     return random.choice(API_KEYS)
 
 
-# 🔹 Configure Tesseract OCR Path
-pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+#  Configure Tesseract OCR Path
+pytesseract.pytesseract.tesseract_cmd = r"d:\Downloads\tesseract-ocr-w64-setup-5.5.0.20241111.exe"
 
-# 🔹 Google Translate Fallback
+#  Google Translate Fallback
 translator = Translator()
 
-# 🔹 Language Code Mapping for gTTS
+# Helper function to handle coroutine results
+def translate_text(text, src_lang, dest_lang):
+    result = translator.translate(text, src=src_lang, dest=dest_lang)
+    if asyncio.iscoroutine(result):
+        result = asyncio.run(result)
+    return result.text
+
+#  Language Code Mapping for gTTS
 LANGUAGE_CODES = {
     "English": "en", "Spanish": "es", "French": "fr", "German": "de", "Hindi": "hi",
     "Chinese (Simplified)": "zh-cn", "Japanese": "ja", "Portuguese": "pt", "Russian": "ru", "Arabic": "ar",
@@ -61,7 +69,7 @@ def speak_text(text, language):
         st.warning(f"Error in speech synthesis: {str(e)}")
 
 
-# 🔹 Extract Text from Documents
+#  Extract Text from Documents
 
 def extract_text_from_file(uploaded_file):
     text = ""
@@ -74,13 +82,13 @@ def extract_text_from_file(uploaded_file):
         text = docx2txt.process(uploaded_file)
     return text.strip() if text else "No text found in the file."
 
-# 🔹 Extract Text from Image Using OCR
+#  Extract Text from Image Using OCR
 def extract_text_from_image(uploaded_image):
     image = Image.open(uploaded_image)
     text = pytesseract.image_to_string(image)
     return text.strip() if text else "No text found in the image."
 
-# 🔹 Generate Downloadable File
+#  Generate Downloadable File
 def generate_downloadable_file(content, original_filename):
     file_extension = original_filename.split(".")[-1]
     buffer = io.BytesIO()
@@ -109,8 +117,8 @@ def ensure_font():
             f.write(response.content)
     return font_path  # Return absolute path
 
-# 🔹 Generate Downloadable File
-# 🔹 Generate Downloadable File
+#  Generate Downloadable File
+#  Generate Downloadable File
 def generate_downloadable_file(content, original_filename):
     file_extension = original_filename.split(".")[-1]
     buffer = io.BytesIO()
@@ -134,7 +142,7 @@ def generate_downloadable_file(content, original_filename):
 
 
 
-# 🔹 Streamlit App
+#  Streamlit App
 def main():
     st.set_page_config(page_title="Multi-Mode Language Translator", page_icon="🗣️")
     st.title("🌍 SpeakEase AI - Multi-Mode Translator")
@@ -154,8 +162,7 @@ def main():
         uploaded_file = st.file_uploader("Upload a document (PDF, DOCX, TXT):", type=["pdf", "docx", "txt"])
         if uploaded_file:
             extracted_text = extract_text_from_file(uploaded_file)
-            translated_text = translator.translate(extracted_text, src=LANGUAGE_CODES.get(input_language, "en"),
-                                                   dest=LANGUAGE_CODES.get(output_language, "en")).text
+            translated_text = translate_text(extracted_text, LANGUAGE_CODES.get(input_language, "en"), LANGUAGE_CODES.get(output_language, "en"))
             st.text_area("Translated Text:", translated_text, height=150)
             speak_text(translated_text, output_language)
 
@@ -168,8 +175,7 @@ def main():
         uploaded_image = st.file_uploader("Upload an image (PNG, JPG, JPEG):", type=["png", "jpg", "jpeg"])
         if uploaded_image:
             extracted_text = extract_text_from_image(uploaded_image)
-            translated_text = translator.translate(extracted_text, src=LANGUAGE_CODES.get(input_language, "en"),
-                                                   dest=LANGUAGE_CODES.get(output_language, "en")).text
+            translated_text = translate_text(extracted_text, LANGUAGE_CODES.get(input_language, "en"), LANGUAGE_CODES.get(output_language, "en"))
             st.text_area("Translated Text:", translated_text, height=150)
             speak_text(translated_text, output_language)
 
@@ -181,8 +187,7 @@ def main():
         st.subheader("✍️ Manual Text Translation")
         manual_text = st.text_area("Enter text to translate:", height=150)
         if st.button("Translate Text", key="translate_button"):
-            translated_text = translator.translate(manual_text, src=LANGUAGE_CODES.get(input_language, "en"),
-                                                   dest=LANGUAGE_CODES.get(output_language, "en")).text
+            translated_text = translate_text(manual_text, LANGUAGE_CODES.get(input_language, "en"), LANGUAGE_CODES.get(output_language, "en"))
             st.text_area("Translated Text:", translated_text, height=150)
             speak_text(translated_text, output_language)
 
@@ -191,6 +196,6 @@ def main():
                                key="download_manual")
 
 
-# 🚀 Run Streamlit App
+#  Run Streamlit App
 if __name__ == "__main__":
     main()
